@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { dbConnection } from './db.js';
 import { UserRouter } from './Router/User.js';
-import bodyParser from 'body-parser';
+
 //env part
 dotenv.config()
 const PORT = process.env.PORT

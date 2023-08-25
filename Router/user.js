@@ -3,7 +3,7 @@ import { User, genetrateJwtToken } from '../models/users.js';
 import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
+
 
 
 dotenv.config()
