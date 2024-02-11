@@ -1,6 +1,6 @@
 import express from 'express';
 import { User, genetrateJwtToken } from '../models/users.js';
-import bcrypt from 'bcrypt';
+import bcrypt, { genSalt } from 'bcrypt';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
@@ -11,6 +11,7 @@ dotenv.config()
 
 const router = express.Router();
 
+// process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 //signup
 
 router.post("/signup",async(req,res)=>{
@@ -20,19 +21,19 @@ router.post("/signup",async(req,res)=>{
         if(user) return res.status(400).json({message:"Email already Exist"})
 
         //generate password
- 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(req.body.password,salt)
     
         //new password updation
         user =await new User({
-            name :req.body.name,
+            username :req.body.username,
             email: req.body.email,
             password : hashedPassword,
-            contact: req.body.contact
+            
         }).save()
 
       const token = genetrateJwtToken(user._id)
+      
       res.status(200).json({message:"SignUp Sucessfully",token})
     } catch (error) {
        res.status(500).json({message:"Please fill the Informations"})
@@ -44,7 +45,7 @@ router.post("/signup",async(req,res)=>{
 router.post("/login",async(req,res)=>{
     try {
         //validate user exist
-        const user = await User.findOne({email:req.body.email})
+        const user = await User.findOne({email:req.body.email});  
         if(!user){
             return res.status(400).json({message:"Invalid Credentials"})
         }
@@ -76,13 +77,14 @@ const transporter = nodemailer.createTransport({
   });
   
   router.post('/forgot', async(req, res) => {
-    const user = await User.findOne({email:req.body.email})
+    const user = await User.findOne({email:req.body.email});
+
+ 
         if(!user){
             return res.status(400).json({message:"Invalid Credentials"})
         }
         const token = genetrateJwtToken(user._id);
-        const link = `http://localhost:3000/verify/${user._id}`;
-        console.log(link);
+        const link = `http://localhost:3000/verify/${token}`;
     // You can generate a secure token here for the password reset link
     // For simplicity, let's assume you have a token 'resetToken123'
     const userEmail = req.body.email;
@@ -104,36 +106,54 @@ const transporter = nodemailer.createTransport({
     });
   });
 
-//reset
-router.put("/verify/:id", async (req, res) => {
+// reset
+// router.post('/reset-password', async (req, res) => {
+  
+//   const {  token } = req.params;
+//   const { password } = req.body;
+// try {
+//   const userdata = await userModel.findOne({ _id: req.params.id })
+
+//   if (!userdata) {
+//     res.json({ message: "User doesn't exist" });
+//   }
+//   const secret = userdata.password + process.env.SECRET_KEY;
+//   const verify = jwt.verify(token, secret);
+//   const confirmPassword = await bcrypt.hash(password, 10);
+//   const user = await userModel.findOneAndUpdate(
+//     {
+//       _id: req.params.id,
+//     },
+//     {
+//       $set: {
+//           password: confirmPassword,
+//       },
+//     }
+//   );
+//   res.send({ email: verify.email, status: "verified",user });
+// } catch (error) {
+//   res.json({ status: "Something Went Wrong" });
+// }
+// });
+
+router.post('/reset-password', async (req, res) => {
+  
 
   try {
+   const user = req.body;
+   if(!user){
+    res.json({message:"Password required"})
+   }
+    // Hash and save the new password
    
-     const { password } = req.body;
-      const userdata = await User.findOne({ _id:req.params.id});
-    if (!userdata.password) {
-      res.status(400).json({ message: "User doesn't exist" });
-    }
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password,salt)
-   
-    const user = await User.updateOne(
-      {
-        _id: req.params.id,
-      },
-      {
-        $set: {
-          password: hashedPassword,
-        },
-      }
-    );
-    const token = genetrateJwtToken(user._id);
-    res.status(200).json({ status: "verified", userdata,token});
-  } catch (error) {
-    console.log(error)
-    res.json({ status: "Something Went Wrong",error});
+
+    res.json({ message: 'Password reset successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 
 export const UserRouter = router ;

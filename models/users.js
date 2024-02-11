@@ -3,7 +3,7 @@ import jwt from  'jsonwebtoken';
 
 const userSchema = new mongoose.Schema(
     {
-        name: {
+        username: {
             type : String,
             required : true,
             maxlength : 35,
@@ -19,13 +19,8 @@ const userSchema = new mongoose.Schema(
             type : String,
             required : true
         },
-        contact:{
-            type : Number
-           
-        },
-        user:{
-            type:mongoose.Schema.Types.ObjectId
-        }
+        resetToken: String
+       
         
         
        
